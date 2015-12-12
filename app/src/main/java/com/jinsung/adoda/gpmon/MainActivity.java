@@ -33,6 +33,7 @@ public class MainActivity extends ActionBarActivity {
                 client.get("http://portalauthmon.azurewebsites.net/test.php", new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        super.onSuccess(statusCode, headers, response);
                     }
 
                     @Override
