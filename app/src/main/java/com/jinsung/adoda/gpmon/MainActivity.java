@@ -43,7 +43,6 @@ public class MainActivity extends ActionBarActivity {
                             for (int i = 0; i < response.length(); i++) {
                                 view.append(new Test(response.getJSONObject(i)).toString());
                             }
-
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
