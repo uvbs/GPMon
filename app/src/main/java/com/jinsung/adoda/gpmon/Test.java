@@ -11,8 +11,8 @@ import static android.widget.Toast.*;
  * Created by adoda on 2015-12-12.
  */
 public class Test {
-    private String name;
-    private int age;
+    private String name = null;
+    private int age = 0;
 
     public Test(String name, int age) {
         this.name = name;
