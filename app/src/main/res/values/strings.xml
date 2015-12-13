@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">GPMon</string>
+    <string name="dynamiclistview">DynamicListView</string>
+    <string name="expandablelistitemadapter">Expand list items</string>
+    <string name="row_number">This is row number %d</string>
+    <string name="expandorcollapsecard">This is card number %d</string>
+    <string name="explainexpand">Tap on cards to expand or collapse them</string>
 </resources>
