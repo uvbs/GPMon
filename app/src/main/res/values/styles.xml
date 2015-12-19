@@ -5,4 +5,17 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <!-- 인트로 화면 표시를 위한 테마 정의 -->
+    <style name="IntroTheme" parent="Theme.AppCompat.Light">
+        <item name="android:windowBackground">@drawable/intro</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="FullscreenActionBarStyle" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/black_overlay</item>
+    </style>
+
+
+
 </resources>

@@ -6,4 +6,5 @@
     <string name="expandorcollapsecard">This is card number %d</string>
     <string name="explainexpand">Tap on cards to expand or collapse them</string>
     <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_intro">IntroActivity</string>
 </resources>
