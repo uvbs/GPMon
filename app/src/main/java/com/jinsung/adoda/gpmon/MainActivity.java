@@ -58,7 +58,8 @@ public class MainActivity extends Activity {
     }
 
     public void onDynamicListViewClicked(final View view) {
-        Toast.makeText(MainActivity.this, "onDynamicListViewClicked", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
     }
 
     public void onExpandListItemAdapterClicked(final View view) {
