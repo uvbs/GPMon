@@ -17,6 +17,19 @@
         android:id="@+id/activity_expandablelistitem_card_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="4dp" />
+        android:paddingTop="4dp">
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:background="#00000c"
+            android:padding="10dp"
+            android:text="Fanny Hands Lane, London"
+            android:textColor="#fafafa"
+            android:textSize="22sp" />
+    </FrameLayout>
 
 </LinearLayout>

@@ -40,35 +40,10 @@ public class MyExpandableListItemAdapter extends ExpandableListItemAdapter<Integ
 
     @Override
     public View getContentView(final int position, final View convertView, final ViewGroup parent) {
-        ImageView imageView = (ImageView) convertView;
+        MonitorView imageView = (MonitorView) convertView;
         if (imageView == null) {
-            imageView = new ImageView(mContext);
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView = new MonitorView(mContext);
         }
-
-        int imageResId;
-        switch (getItem(position) % 5) {
-            case 0:
-                imageResId = R.drawable.img_nature1;
-                break;
-            case 1:
-                imageResId = R.drawable.img_nature2;
-                break;
-            case 2:
-                imageResId = R.drawable.img_nature3;
-                break;
-            case 3:
-                imageResId = R.drawable.img_nature4;
-                break;
-            default:
-                imageResId = R.drawable.img_nature5;
-        }
-
-        Bitmap bitmap = getBitmapFromMemCache(imageResId);
-        if (bitmap == null) {
-            bitmap = BitmapFactory.decodeResource(mContext.getResources(), imageResId);
-        }
-        imageView.setImageBitmap(bitmap);
 
         return imageView;
     }
