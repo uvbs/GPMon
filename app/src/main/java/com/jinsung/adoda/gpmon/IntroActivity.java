@@ -23,7 +23,10 @@ public class IntroActivity extends ActionBarActivity {
         getWindow().getDecorView().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(),
+                    /*MainActivity.class*/
+                    LoginActivity.class
+                );
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.putExtra("intro", false);
                 startActivity(intent);

@@ -30,7 +30,9 @@ public class LoginActivity extends Activity {
         mWebView.getSettings().setDefaultTextEncodingName("UTF-8");
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setWebViewClient(new WebClient());
-        mWebView.loadUrl("https://mlogin.plaync.com/login/signin");
+        //mWebView.loadUrl("https://mlogin.plaync.com/login/signin");
+        mWebView.loadUrl("https://mlogin.plaync.com/login/check?return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror");
+
     }
 
     @Override
@@ -61,13 +63,30 @@ public class LoginActivity extends Activity {
                     return false;
 
                 if (url.contains("/login/crosscookie")) {
-                    view.loadData("로그인 성공",  "text/html; charset=UTF-8", null);
+                    //view.loadData("로그인 성공",  "text/html; charset=UTF-8", null);
+                    Toast.makeText(getApplicationContext(), "Logged in.", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    finish();
                     return true;
                 }
 
                 // 나머지는 로그인 페이지
                 view.loadUrl(url);
                 return true;
+            }
+            else if (url.startsWith("http://127.0.0.1")) {
+                if (url.contains("/login/check/success")) {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                    return true;
+                }
+                else if (url.contains("/login/check/error")) {
+                    Toast.makeText(getApplicationContext(), "Please login.", Toast.LENGTH_SHORT).show();
+                }
+
+                view.loadUrl("https://mlogin.plaync.com/login/signin");
             }
 
             return true; // not render
