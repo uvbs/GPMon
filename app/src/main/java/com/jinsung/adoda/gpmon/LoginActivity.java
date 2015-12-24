@@ -15,6 +15,8 @@ import android.webkit.WebViewClient;
 import android.webkit.CookieManager;
 import android.widget.Toast;
 
+import org.apache.http.cookie.Cookie;
+
 public class LoginActivity extends Activity {
 
     private WebView mWebView;
@@ -29,10 +31,28 @@ public class LoginActivity extends Activity {
 
         mWebView.getSettings().setDefaultTextEncodingName("UTF-8");
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setAppCacheEnabled(true);
         mWebView.setWebViewClient(new WebClient());
-        //mWebView.loadUrl("https://mlogin.plaync.com/login/signin");
-        mWebView.loadUrl("https://mlogin.plaync.com/login/check?return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror");
 
+        CookieSyncManager.createInstance(getApplicationContext());
+        CookieManager.getInstance().setAcceptCookie(true);
+
+        mWebView.postUrl(
+            "https://mlogin.plaync.com/login/refresh",
+            "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror".getBytes()
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CookieSyncManager.getInstance().startSync();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        CookieSyncManager.getInstance().stopSync();
     }
 
     @Override
@@ -62,21 +82,19 @@ public class LoginActivity extends Activity {
                 if (url.contains("/login/error"))
                     return false;
 
-                if (url.contains("/login/crosscookie")) {
-                    //view.loadData("로그인 성공",  "text/html; charset=UTF-8", null);
-                    Toast.makeText(getApplicationContext(), "Logged in.", Toast.LENGTH_SHORT).show();
+                // 나머지는 로그인 페이지
+                return false;
+            }
+            else if (url.startsWith("http://127.0.0.1")) {
+                if (url.contains("/login/check/success")) {
+                    Toast.makeText(getApplicationContext(), "Already logged in.", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                     finish();
                     return true;
                 }
-
-                // 나머지는 로그인 페이지
-                view.loadUrl(url);
-                return true;
-            }
-            else if (url.startsWith("http://127.0.0.1")) {
-                if (url.contains("/login/check/success")) {
+                else if (url.contains("/login/success")) {
+                    Toast.makeText(getApplicationContext(), "Logged in.", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                     finish();
@@ -86,10 +104,16 @@ public class LoginActivity extends Activity {
                     Toast.makeText(getApplicationContext(), "Please login.", Toast.LENGTH_SHORT).show();
                 }
 
-                view.loadUrl("https://mlogin.plaync.com/login/signin");
+                view.loadUrl("https://mlogin.plaync.com/login/signin?return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fsuccess");
+                return true;
             }
 
-            return true; // not render
+            return false;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            CookieSyncManager.getInstance().sync();
         }
     }
 }
