@@ -6,7 +6,9 @@ import com.jinsung.adoda.gpmon.data.Machine;
 import com.jinsung.adoda.gpmon.fortest.TestBase;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -16,6 +18,7 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -47,7 +50,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -55,7 +61,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class DailyApiCallActivity extends TestBase implements OnChartValueSelectedListener {
 
-    final String URL = "http://gpmon-adodajs.rhcloud.com/apis.json";
+    final String URL = "http://gpmon-adodajs.rhcloud.com/apis/";
     private AsyncHttpClient mClient;
     private GetApiCallsResponse mResponse;
     private Machine mTargetMachine;
@@ -77,8 +83,9 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
         mResponse = new GetApiCallsResponse();
         mData = new HashMap<String, DailyApiCalls>();
 
-        //String requestUrl = URL + "?machine=" + targetMachine.getName();
-        mClient.get(URL, mResponse);
+        String requestUrl = URL + mTargetMachine.getName() + ".json";
+        Log.v("requestUrl", requestUrl);
+        mClient.get(requestUrl, mResponse);
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle(mTargetMachine.getName());
@@ -212,7 +219,8 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
                     mData.put(date, dailyApiCalls);
                 }
 
-                String key = "2015-12-24";
+                String key = "2015-12-23";
+                //String key = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                 TextView dateView = (TextView) findViewById(R.id.date);
                 dateView.setText(key);
 
