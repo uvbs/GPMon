@@ -39,7 +39,7 @@
         </activity>
         <activity android:name=".DailyApiCallActivity" />
         <activity android:name=".fortest.TestBase" />
-        <activity android:name=".HourlyApiCalls"></activity>
+        <activity android:name=".HourlyApiCallsActivity"></activity>
     </application>
 
 </manifest>

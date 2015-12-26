@@ -21,6 +21,23 @@ public class DailyApiCalls implements Serializable {
         mApiList.put(hour, infos);
     }
 
+    public int getCount(String apiName, int hour) {
+        int count = 0;
+
+        ArrayList<ApiInfo> temp = mApiList.get(hour);
+        if (null == temp)
+            return count;
+
+        ApiInfo info;
+        for (int j = 0; j < temp.size(); j++) {
+            info = temp.get(j);
+            if (apiName.equals(info.getName()))
+                return info.getRequestCount();
+        }
+
+        return count;
+    }
+
     public int getTotalCount(String apiName) {
         int sum = 0;
 

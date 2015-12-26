@@ -145,7 +145,7 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
         String apiName = mChart.getXValue(barEntry.getXIndex());
         Toast.makeText(DailyApiCallActivity.this, apiName, Toast.LENGTH_SHORT).show();
 
-        Intent intent = new Intent(getApplicationContext(), HourlyApiCalls.class);
+        Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
         intent.putExtra("targetMachine", mTargetMachine);
         intent.putExtra("data", mData);
         intent.putExtra("apiName", apiName);

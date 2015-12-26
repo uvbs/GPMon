@@ -27,11 +27,16 @@ import com.github.mikephil.charting.highlight.Highlight;
 
 import com.jinsung.adoda.gpmon.data.DailyApiCalls;
 import com.jinsung.adoda.gpmon.data.Machine;
+import com.jinsung.adoda.gpmon.fortest.TestBase;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 
-public class HourlyApiCalls extends ActionBarActivity implements OnChartValueSelectedListener {
+public class HourlyApiCallsActivity extends TestBase implements OnChartValueSelectedListener {
 
     private Machine mTargetMachine;
     private HashMap<String, DailyApiCalls> mData;
@@ -97,20 +102,16 @@ public class HourlyApiCalls extends ActionBarActivity implements OnChartValueSel
         xAxis.setDrawGridLines(false);
         xAxis.setDrawAxisLine(false);
         xAxis.setSpaceBetweenLabels(1);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
 
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.setTypeface(Typeface.DEFAULT);
         leftAxis.setTextColor(ColorTemplate.getHoloBlue());
-        leftAxis.setAxisMaxValue(200f);
+        leftAxis.setAxisMaxValue(mChart.getYChartMax());
         leftAxis.setDrawGridLines(true);
 
         YAxis rightAxis = mChart.getAxisRight();
-        rightAxis.setTypeface(Typeface.DEFAULT);
-        rightAxis.setTextColor(Color.RED);
-        rightAxis.setAxisMaxValue(900);
-        rightAxis.setStartAtZero(false);
-        rightAxis.setAxisMinValue(-200);
-        rightAxis.setDrawGridLines(false);
+        rightAxis.setEnabled(false);
     }
 
     @Override
@@ -128,56 +129,41 @@ public class HourlyApiCalls extends ActionBarActivity implements OnChartValueSel
         int count = 20; // for test data
         int range = 30; // for test data
 
+        ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
         ArrayList<String> xVals = new ArrayList<String>();
         for (int i = 0; i < 24; i++) {
-            xVals.add((i) + "");
+            xVals.add((i) + "시");
         }
 
-        ArrayList<Entry> yVals1 = new ArrayList<Entry>();
+        ArrayList<Entry> yVals;
 
-        for (int i = 0; i < count; i++) {
-            float mult = range / 2f;
-            float val = (float) (Math.random() * mult) + 50;// + (float)
-            // ((mult *
-            // 0.1) / 10);
-            yVals1.add(new Entry(val, i));
+        LineDataSet set;
+
+        DailyApiCalls temp;
+        Set<String> keyList = mData.keySet();
+        int index = 0;
+        for (String key : keyList) {
+            yVals = new ArrayList<Entry>();
+            temp = mData.get(key);
+            for (int i = 0; i < xVals.size(); i++) {
+                yVals.add(new Entry(temp.getCount(mApiName, i), i));
+            }
+
+            set = new LineDataSet(yVals, key);
+            set.setAxisDependency(AxisDependency.LEFT);
+            //set.setColor(ColorTemplate.getHoloBlue());
+            set.setColor(ColorTemplate.COLORFUL_COLORS[index]);
+            set.setCircleColor(Color.WHITE);
+            set.setLineWidth(2f);
+            set.setCircleSize(3f);
+            set.setFillAlpha(65);
+            set.setFillColor(ColorTemplate.COLORFUL_COLORS[index]);
+            set.setHighLightColor(Color.rgb(244, 117, 117));
+            set.setDrawCircleHole(false);
+
+            dataSets.add(set);
+            index++;
         }
-
-        LineDataSet set1 = new LineDataSet(yVals1, "DataSet 1");
-        set1.setAxisDependency(AxisDependency.LEFT);
-        set1.setColor(ColorTemplate.getHoloBlue());
-        set1.setCircleColor(Color.WHITE);
-        set1.setLineWidth(2f);
-        set1.setCircleSize(3f);
-        set1.setFillAlpha(65);
-        set1.setFillColor(ColorTemplate.getHoloBlue());
-        set1.setHighLightColor(Color.rgb(244, 117, 117));
-        set1.setDrawCircleHole(false);
-
-        ArrayList<Entry> yVals2 = new ArrayList<Entry>();
-
-        for (int i = 0; i < count; i++) {
-            float mult = range;
-            float val = (float) (Math.random() * mult) + 450;// + (float)
-            // ((mult *
-            // 0.1) / 10);
-            yVals2.add(new Entry(val, i));
-        }
-
-        LineDataSet set2 = new LineDataSet(yVals2, "DataSet 2");
-        set2.setAxisDependency(AxisDependency.RIGHT);
-        set2.setColor(Color.RED);
-        set2.setCircleColor(Color.WHITE);
-        set2.setLineWidth(2f);
-        set2.setCircleSize(3f);
-        set2.setFillAlpha(65);
-        set2.setFillColor(Color.RED);
-        set2.setDrawCircleHole(false);
-        set2.setHighLightColor(Color.rgb(244, 117, 117));
-
-        ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
-        dataSets.add(set2);
-        dataSets.add(set1); // add the datasets
 
         // create a data object with the datasets
         LineData data = new LineData(xVals, dataSets);
@@ -186,5 +172,6 @@ public class HourlyApiCalls extends ActionBarActivity implements OnChartValueSel
 
         // set data
         mChart.setData(data);
+        index++;
     }
 }
