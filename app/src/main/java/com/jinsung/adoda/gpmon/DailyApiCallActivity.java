@@ -1,28 +1,13 @@
 package com.jinsung.adoda.gpmon;
 
-import com.jinsung.adoda.gpmon.data.ApiInfo;
-import com.jinsung.adoda.gpmon.data.DailyApiCalls;
-import com.jinsung.adoda.gpmon.data.DataContainer;
-import com.jinsung.adoda.gpmon.data.Machine;
-import com.jinsung.adoda.gpmon.fortest.TestBase;
-import android.annotation.SuppressLint;
-import android.app.ActionBar;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,31 +21,13 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.filter.Approximator;
-import com.github.mikephil.charting.data.filter.Approximator.ApproximatorType;
-
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.highlight.Highlight;
-
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.jinsung.adoda.gpmon.utils.DateUtil;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.jinsung.adoda.gpmon.data.DailyApiCalls;
+import com.jinsung.adoda.gpmon.data.DataContainer;
+import com.jinsung.adoda.gpmon.fortest.TestBase;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -87,8 +54,14 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
         super.onResume();
 
         // 기존에는 onCreate에서 했었지만, onResume으로 옮긴다.
-        // request total api list
-        DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
+        DataContainer.State curState = DataContainer.getInstance().getCurrentState();
+        if (DataContainer.State.API_CALLS == curState) {
+            // request total api list
+            DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
+        }
+        else if (DataContainer.State.SLOW_QUERIES == curState) {
+            // TODO
+        }
     }
 
     @Override
@@ -221,9 +194,9 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
             ArrayList<String> xVals = new ArrayList<String>();
 
             DailyApiCalls temp = DataContainer.getInstance().getDailyApiCalls();
-            int numOfApi = temp.getNumOfApi();
-            for (int i = 0; i < numOfApi; i++) {
-                String apiName = temp.getApiName(i);
+            ArrayList<String> allApis = DataContainer.getInstance().GetAllApis();
+            for (int i = 0; i < allApis.size(); i++) {
+                String apiName = allApis.get(i);
                 xVals.add(apiName);
                 yVals.add(new BarEntry(temp.getTotalCount(apiName), i));
             }

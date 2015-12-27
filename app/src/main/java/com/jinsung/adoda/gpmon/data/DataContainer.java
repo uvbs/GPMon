@@ -163,6 +163,10 @@ public class DataContainer implements Serializable {
             mSelectedDate = newDate;
     }
 
+    public ArrayList<String> GetAllApis() {
+        return mAllApis;
+    }
+
     public HashMap<String, DailyApiCalls> getApiCalls() {
         return mApiCalls;
     }
