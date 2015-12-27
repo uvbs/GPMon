@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,20 +18,12 @@ import android.widget.Toast;
 
 import com.jinsung.adoda.gpmon.data.DataContainer;
 import com.jinsung.adoda.gpmon.data.Machine;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
+public class MachinesActivity extends Activity implements AdapterView.OnItemClickListener {
 
     private ListView mListView;
     private MachinesAdapter mAdapter;
@@ -40,17 +31,22 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_machines);
+
+        // 머신 리스트 뷰를 생성한다.
         mListView = (ListView) findViewById(R.id.activity_mylist_listview);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (null != mAdapter)
-            mAdapter.clear();
+//        if (null != mAdapter)
+//            mAdapter.clear();
+
+        // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
+        // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
         DataContainer.getInstance().requestMachines(
-            MainActivity.this,
+            MachinesActivity.this,
             new GetMachinesInterface()
         );
     }
@@ -59,6 +55,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
         Machine machine = mAdapter.getItem(arg2);
 
+        // 그럴 일은 없어보이지만, 혹시라도 잘못된 머신 선택인지 체크한다.
         if (false == DataContainer.getInstance().setSelectedMachine(machine)) {
             Toast.makeText(this, getString(R.string.toast_invalid_selection), Toast.LENGTH_SHORT).show();
             return;
@@ -66,6 +63,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         else
             Toast.makeText(this, machine.getName(), Toast.LENGTH_SHORT).show();
 
+        // 머신 별 API Calls 화면으로 이동한다.
         Intent intent = new Intent(getApplicationContext(), DailyApiCallActivity.class);
         intent.putExtra("dataContainer", DataContainer.getInstance());
         intent.putExtra("targetMachine", DataContainer.getInstance().getSelectedMachine());
@@ -79,7 +77,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
         @Override
         public void onStart() {
-            dialog = new ProgressDialog(MainActivity.this);
+            dialog = new ProgressDialog(MachinesActivity.this);
             dialog.setMessage(getString(R.string.dlgtext_waiting));
             dialog.setCancelable(false);
             dialog.show();
@@ -89,18 +87,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
             String errMsg = "State Code :" + stateCode + "\n";
             errMsg += "Error Message :" + error.getMessage();
-            Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MachinesActivity.this, errMsg, Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onSuccess(int stateCode, Header[] header, byte[] body) {
             mAdapter = new MachinesAdapter(
-                MainActivity.this, R.layout.list_row,
+                    MachinesActivity.this, R.layout.list_row,
                 DataContainer.getInstance().getMachines()
             );
             mListView = (ListView) findViewById(R.id.listView);
             mListView.setAdapter(mAdapter);
-            mListView.setOnItemClickListener(MainActivity.this);
+            mListView.setOnItemClickListener(MachinesActivity.this);
         }
 
         @Override

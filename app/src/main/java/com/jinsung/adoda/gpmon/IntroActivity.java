@@ -1,17 +1,8 @@
 package com.jinsung.adoda.gpmon;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.MotionEvent;
-import android.view.View;
-
-import com.jinsung.adoda.gpmon.MainActivity;
-import com.jinsung.adoda.gpmon.R;
-
 
 public class IntroActivity extends ActionBarActivity {
 
@@ -24,7 +15,6 @@ public class IntroActivity extends ActionBarActivity {
             @Override
             public void run() {
                 Intent intent = new Intent(getApplicationContext(),
-                    /*MainActivity.class*/
                     LoginActivity.class
                 );
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

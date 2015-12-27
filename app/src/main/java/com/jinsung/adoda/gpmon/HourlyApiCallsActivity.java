@@ -26,6 +26,7 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.highlight.Highlight;
 
 import com.jinsung.adoda.gpmon.data.DailyApiCalls;
+import com.jinsung.adoda.gpmon.data.DataContainer;
 import com.jinsung.adoda.gpmon.data.Machine;
 import com.jinsung.adoda.gpmon.fortest.TestBase;
 
@@ -52,12 +53,14 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
         setContentView(R.layout.activity_hourly_api_calls);
 
         Intent intent = getIntent();
-        mData = (HashMap<String, DailyApiCalls>)intent.getSerializableExtra("data");
-        mTargetMachine = (Machine)intent.getSerializableExtra("targetMachine");
         mApiName = (String)intent.getSerializableExtra("apiName");
 
+        mData = DataContainer.getInstance().getApiCalls();
+
         ActionBar actionBar = getActionBar();
-        actionBar.setTitle(mTargetMachine.getName());
+        actionBar.setTitle(
+            (CharSequence) DataContainer.getInstance().getSelectedMachine()
+        );
 
         TextView apiNameView = (TextView) findViewById(R.id.apiName);
         apiNameView.setText(mApiName);
