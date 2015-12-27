@@ -59,7 +59,7 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle(
-            (CharSequence) DataContainer.getInstance().getSelectedMachine()
+            (CharSequence) DataContainer.getInstance().getSelectedMachine().getName()
         );
 
         TextView apiNameView = (TextView) findViewById(R.id.apiName);

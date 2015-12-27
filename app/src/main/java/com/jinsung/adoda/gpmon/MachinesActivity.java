@@ -34,7 +34,7 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
         setContentView(R.layout.activity_machines);
 
         // 머신 리스트 뷰를 생성한다.
-        mListView = (ListView) findViewById(R.id.activity_mylist_listview);
+        mListView = (ListView) findViewById(R.id.listView);
     }
 
     @Override
