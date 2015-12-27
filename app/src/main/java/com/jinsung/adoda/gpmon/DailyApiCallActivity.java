@@ -263,7 +263,7 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
 
                         AlertDialog.Builder bld = new AlertDialog.Builder(DailyApiCallActivity.this);
                         bld.setMessage("다음 날짜에 데이터가 존재합니다. 날짜를 선택해 주세요");
-                        bld.setItems(items,
+                        bld.setSingleChoiceItems(items, -1,
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -275,6 +275,8 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
                         bld.create().show();
                     }
                 });
+
+
 
                 ArrayList<BarEntry> yVals = new ArrayList<BarEntry>();
                 ArrayList<String> xVals = new ArrayList<String>();

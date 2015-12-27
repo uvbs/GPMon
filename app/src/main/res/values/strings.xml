@@ -7,6 +7,9 @@
     <string name="explainexpand">Tap on cards to expand or collapse them</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_intro">IntroActivity</string>
+    <string name="dlgtext_waiting">잠시만 기다려주세요...</string>
+    <string name="toast_invalid_selection">잘못된 선택입니다.</string>
+    <string name="url_machines">http://gpmon-adodajs.rhcloud.com/v1/machines.php</string>
     <string name="url_apis">http://gpmon-adodajs.rhcloud.com/v1/apis.php</string>
     <string name="url_api_calls">http://gpmon-adodajs.rhcloud.com/v1/api_calls.php?machine=%s</string>
 </resources>

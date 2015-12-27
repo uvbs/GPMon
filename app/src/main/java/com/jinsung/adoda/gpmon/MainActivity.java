@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jinsung.adoda.gpmon.data.DataContainer;
 import com.jinsung.adoda.gpmon.data.Machine;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -32,10 +34,6 @@ import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
 
-    final String URL = "http://gpmon-adodajs.rhcloud.com/v1/machines.php";
-    private AsyncHttpClient mClient;
-    private GetTargetHostsResponse mResponse;
-
     private ListView mListView;
     private MachinesAdapter mAdapter;
 
@@ -44,32 +42,72 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mListView = (ListView) findViewById(R.id.activity_mylist_listview);
-
-        mClient = new AsyncHttpClient();
-        mResponse = new GetTargetHostsResponse();
-
-        mAdapter = new MachinesAdapter(this, R.layout.list_row, new ArrayList<Machine>());
-        mListView = (ListView) findViewById(R.id.listView);
-        mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mAdapter.clear();
-        mClient.get(URL, mResponse);
+        if (null != mAdapter)
+            mAdapter.clear();
+        DataContainer.getInstance().requestMachines(
+            MainActivity.this,
+            new GetMachinesInterface()
+        );
     }
 
     @Override
     public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
         Machine machine = mAdapter.getItem(arg2);
-        Toast.makeText(this, machine.getName(), Toast.LENGTH_SHORT).show();
+
+        if (false == DataContainer.getInstance().setSelectedMachine(machine)) {
+            Toast.makeText(this, getString(R.string.toast_invalid_selection), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else
+            Toast.makeText(this, machine.getName(), Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(getApplicationContext(), DailyApiCallActivity.class);
-        intent.putExtra("targetMachine", machine);
+        intent.putExtra("dataContainer", DataContainer.getInstance());
+        intent.putExtra("targetMachine", DataContainer.getInstance().getSelectedMachine());
 
         startActivity(intent);
+    }
+
+    public class GetMachinesInterface implements DataContainer.IResponseInterface {
+
+        ProgressDialog dialog = null;
+
+        @Override
+        public void onStart() {
+            dialog = new ProgressDialog(MainActivity.this);
+            dialog.setMessage(getString(R.string.dlgtext_waiting));
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
+            String errMsg = "State Code :" + stateCode + "\n";
+            errMsg += "Error Message :" + error.getMessage();
+            Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onSuccess(int stateCode, Header[] header, byte[] body) {
+            mAdapter = new MachinesAdapter(
+                MainActivity.this, R.layout.list_row,
+                DataContainer.getInstance().getMachines()
+            );
+            mListView = (ListView) findViewById(R.id.listView);
+            mListView.setAdapter(mAdapter);
+            mListView.setOnItemClickListener(MainActivity.this);
+        }
+
+        @Override
+        public void onFinish() {
+            dialog.dismiss();
+            dialog = null;
+        }
     }
 
     public class MachinesAdapter extends ArrayAdapter<Machine> {
@@ -97,51 +135,5 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         }
     }
 
-    public class GetTargetHostsResponse extends AsyncHttpResponseHandler {
 
-        ProgressDialog dialog;
-
-        @Override
-        public void onStart() {
-            dialog = new ProgressDialog(MainActivity.this);
-            dialog.setMessage("잠시만 기다려주세요...");
-            dialog.setCancelable(false);
-            dialog.show();
-        }
-
-        @Override
-        public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
-            String errMsg = "State Code :" + stateCode + "\n";
-            errMsg += "Error Message :" + error.getMessage();
-            Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onSuccess(int stateCode, Header[] header, byte[] body) {
-            try {
-                //통신 결과를 문자열로 변환한다.
-                String response = new String(body, "UTF-8");
-
-                //문자열을 JSONArray로 변환한다.
-                JSONArray jsonArray = new JSONArray(response);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    mAdapter.add(new Machine(jsonArray.getString(i)));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // 성공, 실패 여부에 상관 없이 통신이 종료되면 실행.
-        @Override
-        public void onFinish() {
-            dialog.dismiss();
-            dialog = null;
-        }
-    }
 }
