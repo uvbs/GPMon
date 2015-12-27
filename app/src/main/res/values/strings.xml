@@ -7,4 +7,6 @@
     <string name="explainexpand">Tap on cards to expand or collapse them</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_intro">IntroActivity</string>
+    <string name="url_apis">http://gpmon-adodajs.rhcloud.com/v1/apis.php</string>
+    <string name="url_api_calls">http://gpmon-adodajs.rhcloud.com/v1/api_calls.php?machine=%s</string>
 </resources>

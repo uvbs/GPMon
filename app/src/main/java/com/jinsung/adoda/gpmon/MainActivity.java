@@ -126,8 +126,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 JSONArray jsonArray = new JSONArray(response);
 
                 for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject obj = jsonArray.getJSONObject(i);
-                    mAdapter.add(new Machine(obj.getString("machine_name")));
+                    mAdapter.add(new Machine(jsonArray.getString(i)));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

@@ -42,6 +42,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.highlight.Highlight;
 
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.jinsung.adoda.gpmon.utils.DateUtil;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -53,7 +54,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -61,11 +65,15 @@ import cz.msebera.android.httpclient.Header;
 
 public class DailyApiCallActivity extends TestBase implements OnChartValueSelectedListener {
 
-    final String URL = "http://gpmon-adodajs.rhcloud.com/apis/";
     private AsyncHttpClient mClient;
+    private GetApisResponse mApiResponse;
     private GetApiCallsResponse mResponse;
     private Machine mTargetMachine;
+    private ArrayList<String> mApis;
     private HashMap<String, DailyApiCalls> mData;
+
+    private static ArrayList<String> mAvailDates;
+    private static String mSelectedDate;
 
     protected HorizontalBarChart mChart;
 
@@ -81,11 +89,13 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
 
         mClient = new AsyncHttpClient();
         mResponse = new GetApiCallsResponse();
+        mApiResponse = new GetApisResponse();
         mData = new HashMap<String, DailyApiCalls>();
+        mAvailDates = new ArrayList<String>();
+        mApis = new ArrayList<String>();
 
-        String requestUrl = URL + mTargetMachine.getName() + ".json";
-        Log.v("requestUrl", requestUrl);
-        mClient.get(requestUrl, mResponse);
+        // request total api list
+        mClient.get(getString(R.string.url_apis), mApiResponse);
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle(mTargetMachine.getName());
@@ -147,6 +157,7 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
 
         Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
         intent.putExtra("targetMachine", mTargetMachine);
+        intent.putExtra("availDates", mAvailDates);
         intent.putExtra("data", mData);
         intent.putExtra("apiName", apiName);
 
@@ -182,7 +193,7 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
             try {
                 //통신 결과를 문자열로 변환한다.
                 String response = new String(body, "UTF-8");
-
+                Log.d("ApiCalls response", response);
                 //문자열을 JSONArray로 변환한다.
                 JSONArray jsonArray = new JSONArray(response);
 
@@ -206,28 +217,69 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
                         for (int k = 0; k < apis.length(); k++) {
                             JSONObject api = apis.getJSONObject(k);
 
-
                             String apiName = api.getString("name");
                             int requestCount = api.getInt("count");
 
                             apiInfolist.add(new ApiInfo(apiName, requestCount));
+
+                            if (!mApis.contains(apiName))
+                                mApis.add(apiName);
                         }
 
                         dailyApiCalls.addItem(hour, apiInfolist);
                     }
 
+                    if (results.length() > 0 && DateUtil.isValidDateStr(date))
+                        mAvailDates.add(date);
+
                     mData.put(date, dailyApiCalls);
                 }
 
-                String key = "2015-12-23";
+                Collections.sort(mAvailDates);
+                Collections.sort(mApis);
+
+                if (mAvailDates.isEmpty()) {
+                    Toast.makeText(
+                        DailyApiCallActivity.this,
+                        "선택하신 날짜에는 데이터가 존재하지 않습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show();
+                    mSelectedDate = DateUtil.getToday();
+                }
+                else
+                    mSelectedDate = mAvailDates.get(mAvailDates.size()-1);
+
                 //String key = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                 TextView dateView = (TextView) findViewById(R.id.date);
-                dateView.setText(key);
+                dateView.setText(mSelectedDate);
+                dateView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final String[] items = new String[mAvailDates.size()];
+                        for (int idx = 0; idx < items.length; idx++) {
+                            items[idx] = mAvailDates.get(idx).toString();
+                            Log.v("item", items[idx].toString());
+                        }
+
+                        AlertDialog.Builder bld = new AlertDialog.Builder(DailyApiCallActivity.this);
+                        bld.setMessage("다음 날짜에 데이터가 존재합니다. 날짜를 선택해 주세요");
+                        bld.setItems(items,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    AlertDialog dlg = (AlertDialog) dialog;
+                                    Log.d("selected", ((AlertDialog) dialog).getListView().getSelectedItem().toString());
+                                }
+                            }
+                        );
+                        bld.create().show();
+                    }
+                });
 
                 ArrayList<BarEntry> yVals = new ArrayList<BarEntry>();
                 ArrayList<String> xVals = new ArrayList<String>();
 
-                DailyApiCalls temp = mData.get(key);
+                DailyApiCalls temp = mData.get(mSelectedDate);
                 int numOfApi = temp.getNumOfApi();
                 for (int i = 0; i < numOfApi; i++) {
                     String apiName = temp.getApiName(i);
@@ -253,6 +305,63 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        // 성공, 실패 여부에 상관 없이 통신이 종료되면 실행.
+        @Override
+        public void onFinish() {
+            dialog.dismiss();
+            dialog = null;
+        }
+    }
+
+
+    public class GetApisResponse extends AsyncHttpResponseHandler {
+
+        ProgressDialog dialog;
+
+        @Override
+        public void onStart() {
+            dialog = new ProgressDialog(DailyApiCallActivity.this);
+            dialog.setMessage("잠시만 기다려주세요...");
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
+            String errMsg = "State Code :" + stateCode + "\n";
+            errMsg += "Error Message :" + error.getMessage();
+            Toast.makeText(DailyApiCallActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onSuccess(int stateCode, Header[] header, byte[] body) {
+            try {
+                //통신 결과를 문자열로 변환한다.
+                String response = new String(body, "UTF-8");
+
+                //문자열을 JSONArray로 변환한다.
+                JSONArray jsonArray = new JSONArray(response);
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    String jsonData = (String)jsonArray.get(i);
+
+                    if (!mApis.contains(jsonData))
+                        mApis.add(jsonData);
+                }
+                Collections.sort(mApis);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String requestUrl = String.format(getString(R.string.url_api_calls), mTargetMachine.getName());
+            Log.v("requestUrl", requestUrl);
+            mClient.get(requestUrl, mResponse);
         }
 
         // 성공, 실패 여부에 상관 없이 통신이 종료되면 실행.
