@@ -6,7 +6,15 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,35 +33,37 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.jinsung.adoda.gpmon.data.DailyApiCalls;
 import com.jinsung.adoda.gpmon.data.DataContainer;
-import com.jinsung.adoda.gpmon.fortest.TestBase;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 import cz.msebera.android.httpclient.Header;
 
-public class DailyApiCallActivity extends TestBase implements OnChartValueSelectedListener {
+public class DailyApiCallActivity extends FragmentActivity {
 
-    protected HorizontalBarChart mChart;
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_daily_api_call);
+        setContentView(R.layout.activity_daily_viewpager);
+//        setContentView(R.layout.activity_daily_api_call);
 
         getActionBar().setTitle(
                 DataContainer.getInstance().getSelectedMachine().getName()
         );
 
-        CreateChart();
-    }
+        // ViewPager의 Fragment 전환 애니메이션 설정.
+        mViewPager = (ViewPager)findViewById(R.id.pager);
+        mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // 기존에는 onCreate에서 했었지만, onResume으로 옮긴다.
+        // Slow Queries 구현은 여기서 한다.
+        // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
+        //   이 코드를 참고해서 API Calls를 보여줄지, Slow queries를 보여줄지에 따라 해당하는 데이터를 긁어와주면 된다.
+        //   어느 데이터를 보여줄지에 대한 메뉴 선택은 컨텍스트 메뉴로 하면 편할 듯 하다.
         DataContainer.State curState = DataContainer.getInstance().getCurrentState();
         if (DataContainer.State.API_CALLS == curState) {
             // request total api list
@@ -65,71 +75,165 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
     }
 
     @Override
-    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-        if (e == null)
-            return;
-
-        RectF bounds = mChart.getBarBounds((BarEntry) e);
-        PointF position = mChart.getPosition(e, mChart.getData().getDataSetByIndex(dataSetIndex)
-                .getAxisDependency());
-
-        Log.i("bounds", bounds.toString());
-        Log.i("position", position.toString());
-
-        BarEntry barEntry = (BarEntry)e;
-        String apiName = mChart.getXValue(barEntry.getXIndex());
-        Toast.makeText(DailyApiCallActivity.this, apiName, Toast.LENGTH_SHORT).show();
-
-        Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
-        intent.putExtra("data", DataContainer.getInstance().getApiCalls());
-        intent.putExtra("apiName", apiName);
-
-        startActivity(intent);
+    protected void onResume() {
+        super.onResume();
     }
 
-    @Override
-    public void onNothingSelected() { }
+    // 일별 API Calls 데이터 차트를 그리는 역할은 여기서 한다.
+    private class DailyApiCallsPageFragment extends Fragment implements OnChartValueSelectedListener, View.OnClickListener {
 
-    private void CreateChart () {
-        mChart = (HorizontalBarChart) findViewById(R.id.chart1);
-        mChart.setOnChartValueSelectedListener(this);
+        protected TextView mDateTextView;
+        protected HorizontalBarChart mChart;
 
-        mChart.setDrawGridBackground(false);
-        mChart.setDrawBarShadow(false);
-        mChart.setDrawValueAboveBar(true);
-        mChart.setDescription("Daily Number Of API Call");
+        protected String mDate;
+        protected String mSelectedApiName;
 
-        // if more than 60 entries are displayed in the chart, no values will be drawn
-        mChart.setMaxVisibleValueCount(50);
-        // scaling can now only be done on x- and y-axis separately
-        mChart.setPinchZoom(false);
+        DailyApiCallsPageFragment(String date) {
+            super();
+            mDate = date;
+        }
 
-        XAxis xl = mChart.getXAxis();
-        xl.setPosition(XAxisPosition.BOTTOM);
-        xl.setTypeface(Typeface.DEFAULT);
-        xl.setDrawAxisLine(true);
-        xl.setDrawGridLines(true);
-        xl.setGridLineWidth(0.3f);
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            ViewGroup rootView = (ViewGroup)inflater.inflate(
+                R.layout.activity_daily_api_call, container, false
+            );
 
-        YAxis yl = mChart.getAxisLeft();
-        yl.setTypeface(Typeface.DEFAULT);
-        yl.setDrawAxisLine(true);
-        yl.setDrawGridLines(true);
-        yl.setGridLineWidth(0.3f);
+            createChart(rootView);
+            setChartData(rootView);
 
-        YAxis yr = mChart.getAxisRight();
-        yr.setTypeface(Typeface.DEFAULT);
-        yr.setDrawAxisLine(true);
-        yr.setDrawGridLines(false);
+            return rootView;
+        }
 
-        mChart.animateY(2500);
+        private void createChart (ViewGroup container) {
+            mChart = (HorizontalBarChart) container.findViewById(R.id.chart1);
+            mChart.setOnChartValueSelectedListener(this);
+            mChart.setOnClickListener(this);
 
-        Legend l = mChart.getLegend();
-        l.setPosition(LegendPosition.BELOW_CHART_LEFT);
-        l.setFormSize(8f);
-        l.setXEntrySpace(4f);
+            mChart.setDrawGridBackground(false);
+            mChart.setDrawBarShadow(false);
+            mChart.setDrawValueAboveBar(true);
+            mChart.setDescription("Daily Number Of API Call");
+
+            // if more than 60 entries are displayed in the chart, no values will be drawn
+            mChart.setMaxVisibleValueCount(50);
+            // scaling can now only be done on x- and y-axis separately
+            mChart.setPinchZoom(false);
+
+            XAxis xl = mChart.getXAxis();
+            xl.setPosition(XAxisPosition.BOTTOM);
+            xl.setTypeface(Typeface.DEFAULT);
+            xl.setDrawAxisLine(true);
+            xl.setDrawGridLines(true);
+            xl.setGridLineWidth(0.3f);
+
+            YAxis yl = mChart.getAxisLeft();
+            yl.setTypeface(Typeface.DEFAULT);
+            yl.setDrawAxisLine(true);
+            yl.setDrawGridLines(true);
+            yl.setGridLineWidth(0.3f);
+
+            YAxis yr = mChart.getAxisRight();
+            yr.setTypeface(Typeface.DEFAULT);
+            yr.setDrawAxisLine(true);
+            yr.setDrawGridLines(false);
+
+            mChart.animateY(2500);
+
+            Legend l = mChart.getLegend();
+            l.setPosition(LegendPosition.BELOW_CHART_LEFT);
+            l.setFormSize(8f);
+            l.setXEntrySpace(4f);
+        }
+
+        private void setChartData(ViewGroup viewGroup) {
+            //String key = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            mDateTextView = (TextView) viewGroup.findViewById(R.id.date);
+            mDateTextView.setText(mDate);
+
+            ArrayList<BarEntry> yVals = new ArrayList<BarEntry>();
+            ArrayList<String> xVals = new ArrayList<String>();
+
+            DailyApiCalls temp = DataContainer.getInstance().getDailyApiCalls();
+            ArrayList<String> allApis = DataContainer.getInstance().GetAllApis();
+            for (int i = 0; i < allApis.size(); i++) {
+                String apiName = allApis.get(i);
+                xVals.add(apiName);
+                yVals.add(new BarEntry(temp.getTotalCount(apiName), i));
+            }
+
+            BarDataSet set1 = new BarDataSet(yVals, "Total Api Request Count");
+
+            ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+            dataSets.add(set1);
+
+            BarData data = new BarData(xVals, dataSets);
+            data.setValueTextSize(10f);
+            data.setValueTypeface(Typeface.DEFAULT);
+
+            mChart.setData(data);
+        }
+
+        @Override
+        public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
+            if (e == null)
+                return;
+
+            RectF bounds = mChart.getBarBounds((BarEntry) e);
+            PointF position = mChart.getPosition(e, mChart.getData().getDataSetByIndex(dataSetIndex)
+                    .getAxisDependency());
+
+            Log.i("bounds", bounds.toString());
+            Log.i("position", position.toString());
+
+            BarEntry barEntry = (BarEntry)e;
+            mSelectedApiName = mChart.getXValue(barEntry.getXIndex());
+        }
+
+        @Override
+        public void onNothingSelected() { }
+
+        @Override
+        public void onClick(View v) {
+            // onValueSelected는 민감도가 너무 높아서 onClick에서 액티비티 전환 처리를 한다.
+            if (mChart.equals(v)) {
+                Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
+                intent.putExtra("data", DataContainer.getInstance().getApiCalls());
+                intent.putExtra("apiName", mSelectedApiName);
+
+                startActivity(intent);
+            }
+        }
     }
 
+    // 일별 Fragment를 생성해준다.
+    // 현재는 데이터가 별로 없어서 데이터의 수만큼만 count로 잡지만,
+    // 무한히 스크롤이 가능하게 하고 싶다면
+    //   getCount에서 Integer.MAX_VALUE를 리턴하고 getItem에서 적절한 처리를 해주면 된다.
+    //   참고 : http://arabiannight.tistory.com/entry/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9CAndorid-Viewpager-%EC%82%AC%EC%9A%A9-%ED%95%98%EA%B8%B0
+    //   참고 : http://www.androidpub.com/2452586
+    private class ApiCallsPagerAdapter extends FragmentStatePagerAdapter {
+
+        public ApiCallsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            Set<String> keySet = DataContainer.getInstance().getApiCalls().keySet();
+            ArrayList<String> dates = new ArrayList<String>(keySet);
+            Collections.sort(dates);
+
+            return new DailyApiCallsPageFragment(dates.get(position));
+        }
+
+        @Override
+        public int getCount() {
+            return DataContainer.getInstance().getApiCalls().size();
+        }
+    }
+
+    // 전체 api 목록을 얻은 이후의 UI 처리는 여기서 한다.
     public class GetAllApisResponse implements DataContainer.IResponseInterface {
 
         ProgressDialog dialog;
@@ -164,6 +268,7 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
         }
     }
 
+    // api calls 통계 데이터 획득 이후의 UI 처리는 여기서 한다.
     public class GetApiCallsResponse implements  DataContainer.IResponseInterface {
 
         ProgressDialog dialog;
@@ -185,32 +290,8 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
 
         @Override
         public void onSuccess(int stateCode, Header[] header, byte[] body) {
-
-            //String key = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            TextView dateView = (TextView) findViewById(R.id.date);
-            dateView.setText(DataContainer.getInstance().getSelectedDate());
-
-            ArrayList<BarEntry> yVals = new ArrayList<BarEntry>();
-            ArrayList<String> xVals = new ArrayList<String>();
-
-            DailyApiCalls temp = DataContainer.getInstance().getDailyApiCalls();
-            ArrayList<String> allApis = DataContainer.getInstance().GetAllApis();
-            for (int i = 0; i < allApis.size(); i++) {
-                String apiName = allApis.get(i);
-                xVals.add(apiName);
-                yVals.add(new BarEntry(temp.getTotalCount(apiName), i));
-            }
-
-            BarDataSet set1 = new BarDataSet(yVals, "Total Api Request Count");
-
-            ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
-            dataSets.add(set1);
-
-            BarData data = new BarData(xVals, dataSets);
-            data.setValueTextSize(10f);
-            data.setValueTypeface(Typeface.DEFAULT);
-
-            mChart.setData(data);
+            mViewPager.setAdapter(new ApiCallsPagerAdapter(getSupportFragmentManager()));
+            mViewPager.setCurrentItem(DataContainer.getInstance().getApiCalls().size()-1);
         }
 
         @Override
@@ -220,6 +301,45 @@ public class DailyApiCallActivity extends TestBase implements OnChartValueSelect
         }
     }
 
+    // 화면 전환 효과를 위한 클래스.
+    // 복 to the 붙 from http://developer.android.com/intl/ko/training/animation/screen-slide.html
+    public class ZoomOutPageTransformer implements ViewPager.PageTransformer {
+        private static final float MIN_SCALE = 0.85f;
+        private static final float MIN_ALPHA = 0.5f;
 
+        public void transformPage(View view, float position) {
+            int pageWidth = view.getWidth();
+            int pageHeight = view.getHeight();
+
+            if (position < -1) { // [-Infinity,-1)
+                // This page is way off-screen to the left.
+                view.setAlpha(0);
+
+            } else if (position <= 1) { // [-1,1]
+                // Modify the default slide transition to shrink the page as well
+                float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
+                float vertMargin = pageHeight * (1 - scaleFactor) / 2;
+                float horzMargin = pageWidth * (1 - scaleFactor) / 2;
+                if (position < 0) {
+                    view.setTranslationX(horzMargin - vertMargin / 2);
+                } else {
+                    view.setTranslationX(-horzMargin + vertMargin / 2);
+                }
+
+                // Scale the page down (between MIN_SCALE and 1)
+                view.setScaleX(scaleFactor);
+                view.setScaleY(scaleFactor);
+
+                // Fade the page relative to its size.
+                view.setAlpha(MIN_ALPHA +
+                        (scaleFactor - MIN_SCALE) /
+                                (1 - MIN_SCALE) * (1 - MIN_ALPHA));
+
+            } else { // (1,+Infinity]
+                // This page is way off-screen to the right.
+                view.setAlpha(0);
+            }
+        }
+    }
 
 }

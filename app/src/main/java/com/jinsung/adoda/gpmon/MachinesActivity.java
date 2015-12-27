@@ -35,13 +35,6 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
 
         // 머신 리스트 뷰를 생성한다.
         mListView = (ListView) findViewById(R.id.listView);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-//        if (null != mAdapter)
-//            mAdapter.clear();
 
         // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
         // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
@@ -49,6 +42,11 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
             MachinesActivity.this,
             new GetMachinesInterface()
         );
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override

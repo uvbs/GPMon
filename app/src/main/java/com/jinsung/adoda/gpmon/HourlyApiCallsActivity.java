@@ -4,37 +4,29 @@ import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.Legend.LegendForm;
-import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.components.YAxis.AxisDependency;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.data.filter.Approximator;
-import com.github.mikephil.charting.data.filter.Approximator.ApproximatorType;
+import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
-import com.github.mikephil.charting.highlight.Highlight;
-
 import com.jinsung.adoda.gpmon.data.DailyApiCalls;
 import com.jinsung.adoda.gpmon.data.DataContainer;
 import com.jinsung.adoda.gpmon.data.Machine;
 import com.jinsung.adoda.gpmon.fortest.TestBase;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Objects;
 import java.util.Set;
 
 public class HourlyApiCallsActivity extends TestBase implements OnChartValueSelectedListener {
@@ -143,11 +135,13 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
         LineDataSet set;
 
         DailyApiCalls temp;
-        Set<String> keyList = mData.keySet();
+        Set<String> keySet = DataContainer.getInstance().getApiCalls().keySet();
+        ArrayList<String> dates = new ArrayList<String>(keySet);
+        Collections.sort(dates);
         int index = 0;
-        for (String key : keyList) {
+        for (String key : dates) {
             yVals = new ArrayList<Entry>();
-            temp = mData.get(key);
+            temp = DataContainer.getInstance().getApiCalls().get(key);
             for (int i = 0; i < xVals.size(); i++) {
                 yVals.add(new Entry(temp.getCount(mApiName, i), i));
             }
