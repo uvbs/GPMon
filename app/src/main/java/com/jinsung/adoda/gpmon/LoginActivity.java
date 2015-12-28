@@ -93,16 +93,21 @@ public class LoginActivity extends Activity {
     }
 
     private void LogCookie (String where, String url) {
-        String tag = String.format(
-            "%s-%s",
-            "LoginWebCookie", where
-        );
-        String cookie = CookieManager.getInstance().getCookie(
-            "https://mlogin.plaync.com"
-        ).toString();
-        if (null != url)
-            Log.v(tag, "URL=" + url);
-        Log.v(tag, cookie);
+        try {
+            String tag = String.format(
+                    "%s-%s",
+                    "LoginWebCookie", where
+            );
+            String cookie = CookieManager.getInstance().getCookie(
+                    "https://mlogin.plaync.com"
+            ).toString();
+            if (null != url)
+                Log.v(tag, "URL=" + url);
+            Log.v(tag, cookie);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public class WebClient extends WebViewClient {
