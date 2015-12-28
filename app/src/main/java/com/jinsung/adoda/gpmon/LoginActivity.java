@@ -93,6 +93,7 @@ public class LoginActivity extends Activity {
     }
 
     private void LogCookie (String where, String url) {
+        /*
         try {
             String tag = String.format(
                     "%s-%s",
@@ -108,6 +109,7 @@ public class LoginActivity extends Activity {
         catch(Exception e) {
             e.printStackTrace();
         }
+        */
     }
 
     public class WebClient extends WebViewClient {

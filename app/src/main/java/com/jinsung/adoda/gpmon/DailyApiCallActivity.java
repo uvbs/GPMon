@@ -82,7 +82,7 @@ public class DailyApiCallActivity extends FragmentActivity {
     }
 
     // 일별 API Calls 데이터 차트를 그리는 역할은 여기서 한다.
-    private class DailyApiCallsPageFragment extends Fragment implements OnChartValueSelectedListener, View.OnClickListener {
+    public class DailyApiCallsPageFragment extends Fragment implements OnChartValueSelectedListener, View.OnClickListener {
 
         protected TextView mDateTextView;
         protected HorizontalBarChart mChart;
