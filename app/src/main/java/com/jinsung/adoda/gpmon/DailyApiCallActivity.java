@@ -197,6 +197,8 @@ public class DailyApiCallActivity extends FragmentActivity {
         public void onClick(View v) {
             // onValueSelected는 민감도가 너무 높아서 onClick에서 액티비티 전환 처리를 한다.
             if (mChart.equals(v)) {
+
+                DataContainer.getInstance().setSelectedDate(mDateTextView.getText().toString());
                 Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
                 intent.putExtra("data", DataContainer.getInstance().getApiCalls());
                 intent.putExtra("apiName", mSelectedApiName);

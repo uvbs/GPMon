@@ -51,13 +51,27 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle(
-            (CharSequence) DataContainer.getInstance().getSelectedMachine().getName()
+                (CharSequence) DataContainer.getInstance().getSelectedMachine().getName()
         );
 
         TextView apiNameView = (TextView) findViewById(R.id.apiName);
         apiNameView.setText(mApiName);
         apiNameView.setTypeface(Typeface.DEFAULT);
 
+        createChart();
+    }
+
+    @Override
+    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
+
+    }
+
+    @Override
+    public void onNothingSelected() {
+
+    }
+
+    private void createChart() {
         mChart = (LineChart)findViewById(R.id.chart1);
         mChart.setOnChartValueSelectedListener(this);
 
@@ -82,13 +96,9 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
         // set an alternative background color
         mChart.setBackgroundColor(Color.LTGRAY);
 
-        // add data
-        setData();
+        setChartData();
 
         mChart.animateX(2500);
-
-        // get the legend (only possible after setting data)
-        Legend l = mChart.getLegend();
 
         XAxis xAxis = mChart.getXAxis();
         xAxis.setTypeface(Typeface.DEFAULT);
@@ -109,20 +119,7 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
         rightAxis.setEnabled(false);
     }
 
-    @Override
-    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-
-    }
-
-    @Override
-    public void onNothingSelected() {
-
-    }
-
-    void setData() {
-
-        int count = 20; // for test data
-        int range = 30; // for test data
+    private void setChartData() {
 
         ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
         ArrayList<String> xVals = new ArrayList<String>();
@@ -130,36 +127,39 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
             xVals.add((i) + "시");
         }
 
-        ArrayList<Entry> yVals;
-
-        LineDataSet set;
-
         DailyApiCalls temp;
         Set<String> keySet = DataContainer.getInstance().getApiCalls().keySet();
         ArrayList<String> dates = new ArrayList<String>(keySet);
         Collections.sort(dates);
-        int index = 0;
-        for (String key : dates) {
-            yVals = new ArrayList<Entry>();
+
+        int endIdx = dates.indexOf(DataContainer.getInstance().getSelectedDate());
+        int beginIdx = endIdx - 2;
+        if (beginIdx < 0)
+            beginIdx = 0;
+
+        for (int index = beginIdx; index <= endIdx; index++) {
+            String key = dates.get(index);
+            int colorIdx = index - beginIdx;
+
+            ArrayList<Entry> yVals = new ArrayList<Entry>();
             temp = DataContainer.getInstance().getApiCalls().get(key);
             for (int i = 0; i < xVals.size(); i++) {
                 yVals.add(new Entry(temp.getCount(mApiName, i), i));
             }
 
-            set = new LineDataSet(yVals, key);
+            LineDataSet set = new LineDataSet(yVals, key);
             set.setAxisDependency(AxisDependency.LEFT);
             //set.setColor(ColorTemplate.getHoloBlue());
-            set.setColor(ColorTemplate.COLORFUL_COLORS[index]);
+            set.setColor(ColorTemplate.COLORFUL_COLORS[colorIdx]);
             set.setCircleColor(Color.WHITE);
             set.setLineWidth(2f);
             set.setCircleSize(3f);
             set.setFillAlpha(65);
-            set.setFillColor(ColorTemplate.COLORFUL_COLORS[index]);
+            set.setFillColor(ColorTemplate.COLORFUL_COLORS[colorIdx]);
             set.setHighLightColor(Color.rgb(244, 117, 117));
             set.setDrawCircleHole(false);
 
             dataSets.add(set);
-            index++;
         }
 
         // create a data object with the datasets
@@ -169,6 +169,6 @@ public class HourlyApiCallsActivity extends TestBase implements OnChartValueSele
 
         // set data
         mChart.setData(data);
-        index++;
+        mChart.notifyDataSetChanged();
     }
 }

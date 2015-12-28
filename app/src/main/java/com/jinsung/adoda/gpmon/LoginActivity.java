@@ -39,13 +39,15 @@ public class LoginActivity extends Activity {
         CookieSyncManager.createInstance(getApplicationContext());
         CookieManager.getInstance().setAcceptCookie(true);
 
+        LogCookie("onCreate", null);
+
         // 세션 체크를 한다.
         mWebView.postUrl(
-            "https://mlogin.plaync.com/login/refresh",
-            (
-                "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess" +
-                "&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror"
-            ).getBytes()
+                "https://mlogin.plaync.com/login/refresh",
+                (
+                        "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess" +
+                                "&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror"
+                ).getBytes()
         );
     }
 
@@ -55,11 +57,15 @@ public class LoginActivity extends Activity {
 
         // 쿠키 즉시 싱크 시작
         CookieSyncManager.getInstance().startSync();
+
+        LogCookie("onResume", null);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
+        LogCookie("onPause", null);
 
         // 쿠키 즉시 싱크 중지
         CookieSyncManager.getInstance().stopSync();
@@ -77,6 +83,19 @@ public class LoginActivity extends Activity {
         mWebView.destroy();
     }
 
+    private void LogCookie (String where, String url) {
+        String tag = String.format(
+            "%s-%s",
+            "LoginWebCookie", where
+        );
+        String cookie = CookieManager.getInstance().getCookie(
+            "https://mlogin.plaync.com"
+        ).toString();
+        if (null != url)
+            Log.v(tag, "URL=" + url);
+        Log.v(tag, cookie);
+    }
+
     public class WebClient extends WebViewClient {
 
         @Override
@@ -86,6 +105,8 @@ public class LoginActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            LogCookie("shouldOverrideUrlLoading", url);
+
             if (url.startsWith("https://mlogin.plaync.com")) {
                 if (url.contains("/login/error")) {
                     // 로그인 페이지의 명시적인 오류 처리ㄴ
@@ -132,6 +153,8 @@ public class LoginActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             // 하나의 페이지 전환이 일어날 때마다, 쿠키를 즉시 싱크하도록 한다.
             CookieSyncManager.getInstance().sync();
+
+            LogCookie("onPageFinished", url);
         }
     }
 }
