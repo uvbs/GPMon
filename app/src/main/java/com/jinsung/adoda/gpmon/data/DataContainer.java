@@ -181,6 +181,11 @@ public class DataContainer implements Serializable {
     }
 
     /***********************************************************************************************
+     * private methods
+     **********************************************************************************************/
+
+
+    /***********************************************************************************************
      * private common response handler for "request*"
      **********************************************************************************************/
     public class CommonResponseHandler extends AsyncHttpResponseHandler {
@@ -329,6 +334,8 @@ public class DataContainer implements Serializable {
                         for (int k = 0; k < apis.length(); k++) {
                             JSONObject api = apis.getJSONObject(k);
 
+                            if (api.isNull("name") || api.isNull("count"))
+                                continue;
                             String apiName = api.getString("name");
                             int requestCount = api.getInt("count");
 

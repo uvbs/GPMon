@@ -41,14 +41,12 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
     public void onResume() {
         super.onResume();
 
-        if (false == DataContainer.getInstance().isLoadedMachines()) {
-            // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
-            // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
-            DataContainer.getInstance().requestMachines(
-                MachinesActivity.this,
-                new GetMachinesInterface()
-            );
-        }
+        // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
+        // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
+        DataContainer.getInstance().requestMachines(
+            MachinesActivity.this,
+            new GetMachinesInterface()
+        );
     }
 
     @Override
