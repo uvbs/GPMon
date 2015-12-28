@@ -12,4 +12,5 @@
     <string name="url_machines">http://gpmon-adodajs.rhcloud.com/v1/machines.php</string>
     <string name="url_apis">http://gpmon-adodajs.rhcloud.com/v1/apis.php</string>
     <string name="url_api_calls">http://gpmon-adodajs.rhcloud.com/v1/api_calls.php?machine=%s</string>
+    <string name="net_unavail_text">Server not accessible.\n\n%s\n\nAre you connected to internet?</string>
 </resources>

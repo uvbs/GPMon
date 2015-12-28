@@ -60,23 +60,27 @@ public class DailyApiCallActivity extends FragmentActivity {
         mViewPager = (ViewPager)findViewById(R.id.pager);
         mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
 
-        // Slow Queries 구현은 여기서 한다.
-        // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
-        //   이 코드를 참고해서 API Calls를 보여줄지, Slow queries를 보여줄지에 따라 해당하는 데이터를 긁어와주면 된다.
-        //   어느 데이터를 보여줄지에 대한 메뉴 선택은 컨텍스트 메뉴로 하면 편할 듯 하다.
-        DataContainer.State curState = DataContainer.getInstance().getCurrentState();
-        if (DataContainer.State.API_CALLS == curState) {
-            // request total api list
-            DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
-        }
-        else if (DataContainer.State.SLOW_QUERIES == curState) {
-            // TODO
-        }
     }
 
     @Override
     protected void onResume() {
+
         super.onResume();
+
+        if (false == DataContainer.getInstance().ismIsLoadedApiCalls()) {
+            // Slow Queries 구현은 여기서 한다.
+            // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
+            //   이 코드를 참고해서 API Calls를 보여줄지, Slow queries를 보여줄지에 따라 해당하는 데이터를 긁어와주면 된다.
+            //   어느 데이터를 보여줄지에 대한 메뉴 선택은 컨텍스트 메뉴로 하면 편할 듯 하다.
+            DataContainer.State curState = DataContainer.getInstance().getCurrentState();
+            if (DataContainer.State.API_CALLS == curState) {
+                // request total api list
+                DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
+            }
+            else if (DataContainer.State.SLOW_QUERIES == curState) {
+                // TODO
+            }
+        }
     }
 
     // 일별 API Calls 데이터 차트를 그리는 역할은 여기서 한다.
@@ -250,9 +254,14 @@ public class DailyApiCallActivity extends FragmentActivity {
 
         @Override
         public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
-            String errMsg = "State Code :" + stateCode + "\n";
-            errMsg += "Error Message :" + error.getMessage();
-            Toast.makeText(DailyApiCallActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+//            String errMsg = "State Code :" + stateCode + "\n";
+//            errMsg += "Error Message :" + error.getMessage();
+//            Toast.makeText(DailyApiCallActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getApplicationContext(), NetworkUnavailableActivity.class);
+            intent.putExtra("context", "allapis");
+            intent.putExtra("errorCode", stateCode);
+            intent.putExtra("description", error.getMessage());
+            startActivity(intent);
         }
 
         @Override
@@ -285,9 +294,14 @@ public class DailyApiCallActivity extends FragmentActivity {
 
         @Override
         public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
-            String errMsg = "State Code :" + stateCode + "\n";
-            errMsg += "Error Message :" + error.getMessage();
-            Toast.makeText(DailyApiCallActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+//            String errMsg = "State Code :" + stateCode + "\n";
+//            errMsg += "Error Message :" + error.getMessage();
+//            Toast.makeText(DailyApiCallActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getApplicationContext(), NetworkUnavailableActivity.class);
+            intent.putExtra("context", "apicalls");
+            intent.putExtra("errorCode", stateCode);
+            intent.putExtra("description", error.getMessage());
+            startActivity(intent);
         }
 
         @Override

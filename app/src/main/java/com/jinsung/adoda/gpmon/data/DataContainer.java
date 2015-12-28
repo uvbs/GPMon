@@ -48,6 +48,7 @@ public class DataContainer implements Serializable {
     /* all data */
 
     // machine
+    private boolean            mIsLoadedMachines = false;
     private ArrayList<Machine> mMachines = new ArrayList<Machine>();
 
     // api calls
@@ -93,6 +94,8 @@ public class DataContainer implements Serializable {
 
         return true;
     }
+
+    public boolean isLoadedMachines () { return mIsLoadedMachines; }
 
     public ArrayList<Machine> getMachines() {
         return mMachines;
@@ -148,6 +151,8 @@ public class DataContainer implements Serializable {
 
         return true;
     }
+
+    public boolean ismIsLoadedApiCalls () { return mIsLoadedApiCalls; }
 
     public String getSelectedDate() {
         if (null == mSelectedDate)
@@ -243,6 +248,8 @@ public class DataContainer implements Serializable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            mIsLoadedMachines = true;
 
             super.onSuccess(stateCode, header, body);
         }
@@ -357,6 +364,8 @@ public class DataContainer implements Serializable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            mIsLoadedApiCalls = true;
 
             super.onSuccess(statusCode, headers, body);
         }

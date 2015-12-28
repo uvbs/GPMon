@@ -35,18 +35,20 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
 
         // 머신 리스트 뷰를 생성한다.
         mListView = (ListView) findViewById(R.id.listView);
-
-        // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
-        // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
-        DataContainer.getInstance().requestMachines(
-            MachinesActivity.this,
-            new GetMachinesInterface()
-        );
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        if (false == DataContainer.getInstance().isLoadedMachines()) {
+            // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
+            // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
+            DataContainer.getInstance().requestMachines(
+                MachinesActivity.this,
+                new GetMachinesInterface()
+            );
+        }
     }
 
     @Override
@@ -83,9 +85,14 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
 
         @Override
         public void onFailure(int stateCode, Header[] header, byte[] body, Throwable error) {
-            String errMsg = "State Code :" + stateCode + "\n";
-            errMsg += "Error Message :" + error.getMessage();
-            Toast.makeText(MachinesActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+//            String errMsg = "State Code :" + stateCode + "\n";
+//            errMsg += "Error Message :" + error.getMessage();
+//            Toast.makeText(MachinesActivity.this, errMsg, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getApplicationContext(), NetworkUnavailableActivity.class);
+            intent.putExtra("context", "machines");
+            intent.putExtra("errorCode", stateCode);
+            intent.putExtra("description", error.getMessage());
+            startActivity(intent);
         }
 
         @Override

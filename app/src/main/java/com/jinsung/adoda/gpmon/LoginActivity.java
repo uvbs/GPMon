@@ -41,14 +41,14 @@ public class LoginActivity extends Activity {
 
         LogCookie("onCreate", null);
 
-        // 세션 체크를 한다.
-        mWebView.postUrl(
-                "https://mlogin.plaync.com/login/refresh",
-                (
-                        "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess" +
-                                "&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror"
-                ).getBytes()
-        );
+//        // 세션 체크를 한다.
+//        mWebView.postUrl(
+//                "https://mlogin.plaync.com/login/refresh",
+//                (
+//                        "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess" +
+//                                "&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror"
+//                ).getBytes()
+//        );
     }
 
     @Override
@@ -57,6 +57,15 @@ public class LoginActivity extends Activity {
 
         // 쿠키 즉시 싱크 시작
         CookieSyncManager.getInstance().startSync();
+
+        // 세션 체크를 한다.
+        mWebView.postUrl(
+                "https://mlogin.plaync.com/login/refresh",
+                (
+                        "return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Fsuccess" +
+                                "&err_return_url=http%3A%2F%2F127.0.0.1%2Flogin%2Fcheck%2Ferror"
+                ).getBytes()
+        );
 
         LogCookie("onResume", null);
     }
@@ -101,6 +110,18 @@ public class LoginActivity extends Activity {
         @Override
         public  void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             handler.proceed();
+        }
+
+        public void onReceivedError(WebView view, int errorCode,
+                                    String description, String failingUrl) {
+
+            super.onReceivedError(view, errorCode, description, failingUrl);
+
+            Intent intent = new Intent(getApplicationContext(), NetworkUnavailableActivity.class);
+            intent.putExtra("context", "login");
+            intent.putExtra("errorCode", errorCode);
+            intent.putExtra("description", description);
+            startActivity(intent);
         }
 
         @Override
