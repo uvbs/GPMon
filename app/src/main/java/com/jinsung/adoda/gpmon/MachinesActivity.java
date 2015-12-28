@@ -1,8 +1,10 @@
 package com.jinsung.adoda.gpmon;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -18,12 +20,13 @@ import android.widget.Toast;
 
 import com.jinsung.adoda.gpmon.data.DataContainer;
 import com.jinsung.adoda.gpmon.data.Machine;
+import com.jinsung.adoda.gpmon.fortest.TestBase;
 
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-public class MachinesActivity extends Activity implements AdapterView.OnItemClickListener {
+public class MachinesActivity extends TestBase implements AdapterView.OnItemClickListener {
 
     private ListView mListView;
     private MachinesAdapter mAdapter;
@@ -41,12 +44,42 @@ public class MachinesActivity extends Activity implements AdapterView.OnItemClic
     public void onResume() {
         super.onResume();
 
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
         // 액티비티로 들어올 때마다, 머신 목록을 다시 읽어온다.
         // 읽어왔을 때의 처리는 GetMachinesInterface 구현에서 한다.
         DataContainer.getInstance().requestMachines(
-            MachinesActivity.this,
-            new GetMachinesInterface()
+                MachinesActivity.this,
+                new GetMachinesInterface()
         );
+    }
+
+
+    @Override
+    public void onBackPressed() {
+
+        String alertTitle = getResources().getString(R.string.app_name);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(alertTitle);
+        builder.setMessage("정말 종료하시겠습니까?");
+        builder.setNegativeButton("아니오", null);
+        builder.setPositiveButton("네", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+                moveTaskToBack(true);
+                finish();
+            }
+        });
+
+        builder.show();
+
     }
 
     @Override

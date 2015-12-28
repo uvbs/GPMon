@@ -180,6 +180,10 @@ public class DataContainer implements Serializable {
         return mApiCalls.get(getSelectedDate());
     }
 
+    public DailyApiCalls getDailyApiCalls (String date) {
+        return mApiCalls.get(date);
+    }
+
     /***********************************************************************************************
      * private methods
      **********************************************************************************************/

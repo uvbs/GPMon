@@ -2,6 +2,7 @@ package com.jinsung.adoda.gpmon;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.Legend.LegendPosition;
+import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
 import com.github.mikephil.charting.components.YAxis;
@@ -47,10 +49,7 @@ public class DailyApiCallActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_daily_viewpager);
-//        setContentView(R.layout.activity_daily_api_call);
 
         getActionBar().setTitle(
                 DataContainer.getInstance().getSelectedMachine().getName()
@@ -66,6 +65,13 @@ public class DailyApiCallActivity extends FragmentActivity {
     protected void onResume() {
 
         super.onResume();
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         // Slow Queries 구현은 여기서 한다.
         // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
@@ -102,7 +108,6 @@ public class DailyApiCallActivity extends FragmentActivity {
             );
 
             createChart(rootView);
-            setChartData(rootView);
 
             return rootView;
         }
@@ -115,12 +120,15 @@ public class DailyApiCallActivity extends FragmentActivity {
             mChart.setDrawGridBackground(false);
             mChart.setDrawBarShadow(false);
             mChart.setDrawValueAboveBar(true);
-            mChart.setDescription("Daily Number Of API Call");
+            mChart.setDescription("");
 
             // if more than 60 entries are displayed in the chart, no values will be drawn
             mChart.setMaxVisibleValueCount(50);
             // scaling can now only be done on x- and y-axis separately
             mChart.setPinchZoom(false);
+            mChart.setScaleEnabled(false);
+
+            setChartData(container);
 
             XAxis xl = mChart.getXAxis();
             xl.setPosition(XAxisPosition.BOTTOM);
@@ -130,17 +138,16 @@ public class DailyApiCallActivity extends FragmentActivity {
             xl.setGridLineWidth(0.3f);
 
             YAxis yl = mChart.getAxisLeft();
-            yl.setTypeface(Typeface.DEFAULT);
-            yl.setDrawAxisLine(true);
-            yl.setDrawGridLines(true);
-            yl.setGridLineWidth(0.3f);
+            yl.setEnabled(false);
 
             YAxis yr = mChart.getAxisRight();
             yr.setTypeface(Typeface.DEFAULT);
             yr.setDrawAxisLine(true);
-            yr.setDrawGridLines(false);
+            yr.setDrawGridLines(true);
+            yr.setLabelCount(3, false);
 
             mChart.animateY(2500);
+
 
             Legend l = mChart.getLegend();
             l.setPosition(LegendPosition.BELOW_CHART_LEFT);
@@ -156,7 +163,7 @@ public class DailyApiCallActivity extends FragmentActivity {
             ArrayList<BarEntry> yVals = new ArrayList<BarEntry>();
             ArrayList<String> xVals = new ArrayList<String>();
 
-            DailyApiCalls temp = DataContainer.getInstance().getDailyApiCalls();
+            DailyApiCalls temp = DataContainer.getInstance().getDailyApiCalls(mDate);
             ArrayList<String> allApis = DataContainer.getInstance().GetAllApis();
             for (int i = 0; i < allApis.size(); i++) {
                 String apiName = allApis.get(i);
@@ -200,12 +207,14 @@ public class DailyApiCallActivity extends FragmentActivity {
             // onValueSelected는 민감도가 너무 높아서 onClick에서 액티비티 전환 처리를 한다.
             if (mChart.equals(v)) {
 
-                DataContainer.getInstance().setSelectedDate(mDateTextView.getText().toString());
-                Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
-                intent.putExtra("data", DataContainer.getInstance().getApiCalls());
-                intent.putExtra("apiName", mSelectedApiName);
+                if (null != mSelectedApiName) {
+                    DataContainer.getInstance().setSelectedDate(mDateTextView.getText().toString());
+                    Intent intent = new Intent(getApplicationContext(), HourlyApiCallsActivity.class);
+                    intent.putExtra("data", DataContainer.getInstance().getApiCalls());
+                    intent.putExtra("apiName", mSelectedApiName);
 
-                startActivity(intent);
+                    startActivity(intent);
+                }
             }
         }
     }
