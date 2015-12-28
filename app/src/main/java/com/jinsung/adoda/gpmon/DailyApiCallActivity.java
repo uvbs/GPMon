@@ -67,19 +67,17 @@ public class DailyApiCallActivity extends FragmentActivity {
 
         super.onResume();
 
-        if (false == DataContainer.getInstance().ismIsLoadedApiCalls()) {
-            // Slow Queries 구현은 여기서 한다.
-            // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
-            //   이 코드를 참고해서 API Calls를 보여줄지, Slow queries를 보여줄지에 따라 해당하는 데이터를 긁어와주면 된다.
-            //   어느 데이터를 보여줄지에 대한 메뉴 선택은 컨텍스트 메뉴로 하면 편할 듯 하다.
-            DataContainer.State curState = DataContainer.getInstance().getCurrentState();
-            if (DataContainer.State.API_CALLS == curState) {
-                // request total api list
-                DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
-            }
-            else if (DataContainer.State.SLOW_QUERIES == curState) {
-                // TODO
-            }
+        // Slow Queries 구현은 여기서 한다.
+        // TODO Slow queries 구현을 하고 싶다면, 손은 꽤 많이 가겠지만,
+        //   이 코드를 참고해서 API Calls를 보여줄지, Slow queries를 보여줄지에 따라 해당하는 데이터를 긁어와주면 된다.
+        //   어느 데이터를 보여줄지에 대한 메뉴 선택은 컨텍스트 메뉴로 하면 편할 듯 하다.
+        DataContainer.State curState = DataContainer.getInstance().getCurrentState();
+        if (DataContainer.State.API_CALLS == curState) {
+            // request total api list
+            DataContainer.getInstance().requestAllApis(DailyApiCallActivity.this, new GetAllApisResponse());
+        }
+        else if (DataContainer.State.SLOW_QUERIES == curState) {
+            // TODO
         }
     }
 
@@ -307,7 +305,14 @@ public class DailyApiCallActivity extends FragmentActivity {
         @Override
         public void onSuccess(int stateCode, Header[] header, byte[] body) {
             mViewPager.setAdapter(new ApiCallsPagerAdapter(getSupportFragmentManager()));
-            mViewPager.setCurrentItem(DataContainer.getInstance().getApiCalls().size()-1);
+
+            Set<String> keySet = DataContainer.getInstance().getApiCalls().keySet();
+            ArrayList<String> dates = new ArrayList<String>(keySet);
+            Collections.sort(dates);
+
+            String selectedDate = DataContainer.getInstance().getSelectedDate();
+
+            mViewPager.setCurrentItem(dates.indexOf(selectedDate));
         }
 
         @Override
