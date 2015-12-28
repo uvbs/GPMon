@@ -1,9 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'gpmon'
+            keyPassword '123456'
+            storeFile file('E:/GitHub/GPMon/keystore.jks')
+            storePassword '123456'
+        }
+    }
     compileSdkVersion 19
     buildToolsVersion "23.0.2"
-
     defaultConfig {
         applicationId "com.jinsung.adoda.gpmon"
         minSdkVersion 19
@@ -15,11 +22,16 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
-
     lintOptions {
+        // use this line to check all rules except those listed
+        disable 'RuleToDisable', 'SecondRuleToDisable'
+        // use this line to check just listed rules
+        enable 'FirstRuleToCheck', 'LastRuleToCheck'
         abortOnError false
+        checkReleaseBuilds false
     }
 }
 
